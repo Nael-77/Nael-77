@@ -16,6 +16,7 @@ import sys
 import time
 
 import requests
+from urllib.parse import urlencode
 
 
 
@@ -47,7 +48,7 @@ def send_telegram(text):
     ).raise_for_status()
 
 
-def available_stores():
+def build_url():
     params = {
         "fae": "true",
         "pl": "true",
@@ -57,15 +58,22 @@ def available_stores():
         "parts.0": PART,
         "location": LOCATION,
     }
-    r = requests.get(URL, params=params, headers=HEADERS, timeout=20)
+    return f"{URL}?{urlencode(params, safe='/,')}"
+
+
+def parse_stores(data):
+    stores = data["body"]["content"]["pickupMessage"]["stores"]
+    return [
+        s["storeName"]
+        for s in stores
+        if s["partsAvailability"].get(PART, {}).get("pickupDisplay") == "available"
+    ]
+
+
+def available_stores():
+    r = requests.get(build_url(), headers=HEADERS, timeout=20)
     r.raise_for_status()
-    stores = r.json()["body"]["content"]["pickupMessage"]["stores"]
-    found = []
-    for s in stores:
-        info = s["partsAvailability"].get(PART, {})
-        if info.get("pickupDisplay") == "available":
-            found.append(s["storeName"])
-    return found
+    return parse_stores(r.json())
 
 
 def main():
