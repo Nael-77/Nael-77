@@ -7,6 +7,7 @@ Env vars:
   TG_TOKEN      Telegram bot token (from @BotFather)
   TG_CHAT_ID    your chat id (from @userinfobot)
   APPLE_DOMAIN  optional, default www.apple.com (e.g. www.apple.com/ae for other countries)
+  CPPART        optional, carrier part, default UNLOCKED/US
   INTERVAL      optional, seconds between checks, default 600
   ONCE          set to 1 to check once and exit (for cron / GitHub Actions)
 """
@@ -30,6 +31,7 @@ LOCATION = require_env("LOCATION")
 TG_TOKEN = require_env("TG_TOKEN")
 TG_CHAT_ID = require_env("TG_CHAT_ID")
 DOMAIN = os.environ.get("APPLE_DOMAIN", "www.apple.com")
+CPPART = os.environ.get("CPPART", "UNLOCKED/US")
 INTERVAL = int(os.environ.get("INTERVAL", "600"))
 ONCE = os.environ.get("ONCE") == "1"
 
@@ -46,7 +48,15 @@ def send_telegram(text):
 
 
 def available_stores():
-    params = {"pl": "true", "mts.0": "regular", "parts.0": PART, "location": LOCATION}
+    params = {
+        "fae": "true",
+        "pl": "true",
+        "mts.0": "regular",
+        "mts.1": "compact",
+        "cppart": CPPART,
+        "parts.0": PART,
+        "location": LOCATION,
+    }
     r = requests.get(URL, params=params, headers=HEADERS, timeout=20)
     r.raise_for_status()
     stores = r.json()["body"]["content"]["pickupMessage"]["stores"]
