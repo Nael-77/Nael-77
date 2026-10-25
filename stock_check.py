@@ -8,6 +8,7 @@ Env vars:
   TG_CHAT_ID    your chat id (from @userinfobot)
   APPLE_DOMAIN  optional, default www.apple.com (e.g. www.apple.com/ae for other countries)
   INTERVAL      optional, seconds between checks, default 600
+  ONCE          set to 1 to check once and exit (for cron / GitHub Actions)
 """
 import os
 import sys
@@ -21,6 +22,7 @@ TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT_ID = os.environ["TG_CHAT_ID"]
 DOMAIN = os.environ.get("APPLE_DOMAIN", "www.apple.com")
 INTERVAL = int(os.environ.get("INTERVAL", "600"))
+ONCE = os.environ.get("ONCE") == "1"
 
 URL = f"https://{DOMAIN}/shop/fulfillment-messages"
 HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"}
@@ -48,6 +50,12 @@ def available_stores():
 
 
 def main():
+    if ONCE:
+        stores = available_stores()
+        print("available" if stores else "unavailable", flush=True)
+        if stores:
+            send_telegram(f"IN STOCK: {PART}\nStores: {', '.join(stores)}")
+        return
     was_available = False
     send_telegram(f"Stock monitor started for {PART} near {LOCATION}")
     while True:

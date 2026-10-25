@@ -1,0 +1,23 @@
+name: Stock check
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python stock_check.py
+        env:
+          ONCE: "1"
+          PART_NUMBER: ${{ secrets.PART_NUMBER }}
+          LOCATION: ${{ secrets.LOCATION }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
