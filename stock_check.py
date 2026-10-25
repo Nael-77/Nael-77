@@ -16,10 +16,19 @@ import time
 
 import requests
 
-PART = os.environ["PART_NUMBER"]
-LOCATION = os.environ["LOCATION"]
-TG_TOKEN = os.environ["TG_TOKEN"]
-TG_CHAT_ID = os.environ["TG_CHAT_ID"]
+
+
+def require_env(name):
+    value = os.environ.get(name, "").strip()
+    if not value:
+        sys.exit(f"Missing or empty environment variable / secret: {name}")
+    return value
+
+
+PART = require_env("PART_NUMBER")
+LOCATION = require_env("LOCATION")
+TG_TOKEN = require_env("TG_TOKEN")
+TG_CHAT_ID = require_env("TG_CHAT_ID")
 DOMAIN = os.environ.get("APPLE_DOMAIN", "www.apple.com")
 INTERVAL = int(os.environ.get("INTERVAL", "600"))
 ONCE = os.environ.get("ONCE") == "1"
